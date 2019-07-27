@@ -9,10 +9,12 @@
 #include <stdint.h>
 
 // Macro to define packed structures
-#ifdef __GNUC__
+#if defined(__CC_ARM) || defined(__CLANG_ARM)          /* ARM C Compiler */
   #define MAVPACKED( __Declaration__ ) __Declaration__ __attribute__((packed))
-#else
-  #define MAVPACKED( __Declaration__ ) __pragma( pack(push, 1) ) __Declaration__ __pragma( pack(pop) )
+#elif defined (__ICCARM__) || defined(__ICCRX__)      /* for IAR Compiler */
+  #define MAVPACKED( __Declaration__ ) __Declaration__ __attribute__((packed, aligned(1)))
+#elif defined (__GNUC__) || defined(__TI_COMPILER_VERSION__)
+  #define MAVPACKED( __Declaration__ ) __Declaration__ __attribute__((packed))
 #endif
 
 #ifndef MAVLINK_MAX_PAYLOAD_LEN
@@ -50,9 +52,12 @@
  * and re-instanted on the receiving side using the
  * native type as well.
  */
+#if defined(__CC_ARM) || defined(__CLANG_ARM)          /* ARM C Compiler */
+#pragma anon_unions
+#endif
 MAVPACKED(
-typedef struct param_union {
-	union {
+typedef __packed struct param_union {
+	__packed union {
 		float param_float;
 		int32_t param_int32;
 		uint32_t param_uint32;
@@ -79,13 +84,16 @@ typedef struct param_union {
  * which should be the same as gcc on little-endian arm. When using shifts/masks the value will be treated as a 64 bit unsigned number,
  * and the bits pulled out using the shifts/masks.
 */
+#if defined(__CC_ARM) || defined(__CLANG_ARM)          /* ARM C Compiler */
+#pragma anon_unions
+#endif
 MAVPACKED(
-typedef struct param_union_extended {
-    union {
-    struct {
+typedef __packed struct param_union_extended {
+    __packed union {
+    __packed struct {
         uint8_t is_double:1;
         uint8_t mavlink_type:7;
-        union {
+        __packed union {
             char c;
             uint8_t uint8;
             int8_t int8;
