@@ -13,10 +13,12 @@ namespace mavlink {
 #endif
 
 // Macro to define packed structures
-#ifdef __GNUC__
+#if defined(__CC_ARM) || defined(__CLANG_ARM)          /* ARM C Compiler */
   #define MAVPACKED( __Declaration__ ) __Declaration__ __attribute__((packed))
-#else
-  #define MAVPACKED( __Declaration__ ) __pragma( pack(push, 1) ) __Declaration__ __pragma( pack(pop) )
+#elif defined (__ICCARM__) || defined(__ICCRX__)      /* for IAR Compiler */
+  #define MAVPACKED( __Declaration__ ) __Declaration__ __attribute__((packed, aligned(1)))
+#elif defined (__GNUC__) || defined(__TI_COMPILER_VERSION__)
+  #define MAVPACKED( __Declaration__ ) __Declaration__ __attribute__((packed))
 #endif
 
 #ifndef MAVLINK_MAX_PAYLOAD_LEN
